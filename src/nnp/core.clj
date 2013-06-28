@@ -1,13 +1,12 @@
 (ns nnp.core
+  (:use nnp.gui.mainwin)
   (:gen-class))
 
 
 
-
-
 (defn -main
-  "I don't do a whole lot ... yet."
+  "Initialize new main window."
   [& args]
   ;; work around dangerous default behaviour in Clojure
   (alter-var-root #'*read-eval* (constantly false))
-  (println "Hello, World!"))
+  main-window)

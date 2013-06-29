@@ -1,6 +1,8 @@
 (ns nnp.gui.mainwin
   (:use seesaw.core)
-  (:require [clojure.java.io :as io]))
+  (:use clojure.string)
+  ;(:require [clojure.java.io :as io]))
+  (:import java.io.File))
 
 (native!)
 
@@ -9,12 +11,24 @@
 
 (defn seq-of-files [dir]
   "Returns a seq of files for the directory given."
-  (file-seq (io/file dir)))
+;  (file-seq (io/file dir)))
+  (.listFiles (File. dir)))
 
 (defn list-of-files [fileseq]
-  ()
-;(doseq [file (sort-by #(true? (.isDirectory %)) (seq-of-files "./"))] (println (.getName file)))
-    
+  "Returns seq of all directories in fileseq"
+  (filter #(true? (.isDirectory %)) fileseq))
+
+(defn list-of-dirs [fileseq]
+  "Returns seq of all files in fileseq"
+  (filter #(and (false? (.isDirectory %)) (false? (.isHidden %))) fileseq))
+
+(def lbl (scrollable
+          (text :text (join "\n" (map #(.getName %) (concat
+                                                     (list-of-files (seq-of-files "./"))
+                                                     (list-of-dirs (seq-of-files "./")))))
+                :multi-line? true
+                :editable? false)))
+
 
 (def file-browser
   "File browser for viewing directories and opening/saving files."

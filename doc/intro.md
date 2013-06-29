@@ -1,3 +1,3 @@
 # Introduction to nnp
 
-TODO: write [great documentation](http://jacobian.org/writing/great-documentation/what-to-write/)
+A simple text editor program that is a work in progress, just for fun.

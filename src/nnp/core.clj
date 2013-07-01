@@ -1,5 +1,5 @@
 (ns nnp.core
-  (:use nnp.gui.mainwin)
+  (:use nnp.mainwin)
   (:gen-class))
 
 

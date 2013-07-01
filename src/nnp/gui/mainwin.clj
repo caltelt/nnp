@@ -1,7 +1,6 @@
 (ns nnp.gui.mainwin
   (:use seesaw.core)
   (:use clojure.string)
-  ;(:require [clojure.java.io :as io]))
   (:import java.io.File))
 
 (native!)
@@ -11,7 +10,6 @@
 
 (defn seq-of-files [dir]
   "Returns a seq of files for the directory given."
-;  (file-seq (io/file dir)))
   (.listFiles (File. dir)))
 
 (defn list-of-files [fileseq]
@@ -22,23 +20,43 @@
   "Returns seq of all files in fileseq"
   (filter #(and (false? (.isDirectory %)) (false? (.isHidden %))) fileseq))
 
-(def lbl (scrollable
-          (text :text (join "\n" (map #(.getName %) (concat
-                                                     (list-of-files (seq-of-files "./"))
-                                                     (list-of-dirs (seq-of-files "./")))))
-                :multi-line? true
-                :editable? false)))
+;; (join "\n" (map #(.getName %) (concat (list-of-files (seq-of-files "./")) (list -of-dirs (seq-of-files "./")))))
 
+(def file-list-box
+  "list of folders and files to select"
+  (scrollable
+   (listbox :model (concat (list-of-files (seq-of-files "./")) (list-of-dirs (seq-of-files "./"))))))
+
+(def file-path
+  "Current path"
+  (text :text (.getCanonicalPath (File. "./"))
+                     :columns 1
+                     :editable? true))
+
+(def file-name
+  "Name for current file to be saved/selected in fb"
+  (text :editable? true))
+
+(def file-browser-panel
+  "Panel to be added to the file-browser window"
+  (border-panel
+   :north file-path
+   :center file-list-box
+   :south file-name
+   :vgap 5 :hgap 5 :border 5))
 
 (def file-browser
   "File browser for viewing directories and opening/saving files."
-   (-> (frame :title "File Browser"
-              :id file-browser
-              :content lbl
-              :size [default-width :by default-height]
-              :minimum-size [default-width :by default-height]
-              :on-close :hide)))
+  (frame :title "File Browser"
+         :id file-browser
+         :content file-browser-panel
+         :size [default-width :by default-height]
+         :minimum-size [default-width :by default-height]
+         :on-close :hide))
 
+;;--------------------------------------------------
+;;--------------------------------------------------
+;;--------------------------------------------------
 ;;Create the items for the file-menu
 
 (def file-menu-save
@@ -49,10 +67,11 @@
 (def file-menu-open
   (menu-item :text "Open"
              :listen [:action (fn [e]
-                                (alert "OPENED"))]))
+                                (show! file-browser))]))
 
-;;End creating items for file menu
-
+;;--------------------------------------------------
+;;--------------------------------------------------
+;;--------------------------------------------------
 ;;Create menu items
 
 (def file-menu
@@ -63,6 +82,9 @@
 ;;End creating menu items
 
 
+;;--------------------------------------------------
+;;--------------------------------------------------
+;;--------------------------------------------------
 ;;Create main window
 
 (def menu-bar
@@ -70,15 +92,16 @@
 
 (def text-area
   "Main text area for the editor."
-  (scrollable (text :multi-line? true)))
+  (scrollable (text :multi-line? true
+                    :tab-size 4)))
 
 (def main-window
-   (invoke-later
-    (-> (frame :title "Hello"
-               :id main-window
-               :menubar menu-bar
-               :content text-area
-               :size [default-width :by default-height]
-               :minimum-size [default-width :by default-height]
-               :on-close :exit)
-        show!)))
+  "Main window of notepad"
+  (invoke-later
+   (show! (frame :title "Hello"
+                 :id main-window
+                 :menubar menu-bar
+                 :content text-area
+                 :size [default-width :by default-height]
+                 :minimum-size [default-width :by default-height]
+                 :on-close :exit))))

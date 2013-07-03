@@ -9,25 +9,31 @@
 (def default-width 600)
 (def default-height 480)
 
-(def current-path "./")
+(def current-path (str (.getCanonicalPath (File. "./")) "/"))
 
 ;;--------------------------------------------------
 
 (defn seq-of-files [dir]
   "Returns a seq of files for the directory given."
-  (.listFiles (File. dir)))
-
-(defn list-of-files [fileseq]
-  "Returns seq of all directories in fileseq"
-  (filter #(true? (.isDirectory %)) fileseq))
+  (map #(replace (str %) #".*\/" "") (.listFiles (File. dir))))
 
 (defn list-of-dirs [fileseq]
+  "Returns seq of all directories in fileseq"
+  (sort (filter #(and (true? (.isDirectory (File. (str current-path %))))
+                     (false? (.isHidden (File. (str current-path %))))) fileseq)))
+
+(defn list-of-files [fileseq]
   "Returns seq of all files in fileseq"
-  (filter #(and (false? (.isDirectory %)) (false? (.isHidden %))) fileseq))
+  (sort (filter #(and (false? (.isDirectory (File. (str current-path %))))
+                     (false? (.isHidden (File. (str current-path %)))))
+                fileseq)))
 
 (defn list-of-files-dirs
   [filepath]
-  (concat (list-of-files (seq-of-files filepath)) (list-of-dirs (seq-of-files filepath))))
+  "Returns a list of directories and files in current file path"
+  (concat (list-of-dirs (seq-of-files filepath))
+          '(---)
+          (list-of-files (seq-of-files filepath))))
 
 ;;--------------------------------------------------
 
@@ -76,14 +82,34 @@
   (config! file-name :text file)
   (show! file-browser))
 
+(defn change-dir
+  "Change current directory and update filebrowser accordingly"
+  [dir]
+  ;TODO fix to make empty? when no longer using '---' in listbox
+  (if (true? (.exists (File. dir)))
+    (def current-path dir))
+  (config! file-list-box :model (list-of-files-dirs current-path))
+  (config! file-path :text current-path))
+
+;;---------------------------------------------------
+
 (listen file-list-box :selection
         (fn [e]
-          (when-let [s (selection e)]
-            (text! file-name (.getName s)))))
+          (when-let [sel (selection e)]
+            (let [s (File. (str current-path sel))]
+              "if a directory was selected, change current directory else put file name in file-name text field"
+              (if (.isDirectory s)
+                (change-dir (str (.getCanonicalPath s) "/"))
+                (text! file-name (.getName s)))))))
 
+;;File-path text field key listener
 ;;TODO add '/' at end of filepath
 (map-key file-path "ENTER"
          (fn [e]
-           (def current-path (text file-path))
-           (config! file-list-box :model (list-of-files-dirs current-path))))
-
+           "Pretty up the input text before displaying it"
+           (let [path (trim (text file-path))]
+             ;if path has trailing '/' use that
+             ; else add a trailing '/'
+             (if (re-matches #".*\/" path)
+               (change-dir path)
+               (change-dir (str path "/"))))))

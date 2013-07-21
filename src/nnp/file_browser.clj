@@ -20,8 +20,9 @@
 
 (defn list-of-dirs [fileseq]
   "Returns seq of all directories in fileseq"
-  (sort (filter #(and (true? (.isDirectory (File. (str current-path %))))
-                     (false? (.isHidden (File. (str current-path %))))) fileseq)))
+  (cons ".."
+        (sort (filter #(and (true? (.isDirectory (File. (str current-path %))))
+                            (false? (.isHidden (File. (str current-path %))))) fileseq))))
 
 (defn list-of-files [fileseq]
   "Returns seq of all files in fileseq"
@@ -112,8 +113,10 @@
             (let [s (File. (str current-path sel))]
               "if a directory was selected, change current directory else put file name in file-name text field"
               (if (.isDirectory s)
-                (change-dir (str (.getCanonicalPath s) "/"))
-                (text! file-name (.getName s)))))))
+                (do (change-dir (str (.getCanonicalPath s) "/"))
+                    (text! file-name ""))
+                (if (.exists s)
+                  (text! file-name (.getName s))))))))
 
 ;;File-path text field key listener
 ;;TODO add '/' at end of filepath

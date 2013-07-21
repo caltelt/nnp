@@ -19,15 +19,18 @@
 ;;--------------------------------------------------
 ;;Create the items for the file-menu
 
+(def file-menu-new
+  (menu-item :text "New"))
+
 (def file-menu-save
   (menu-item :text "Save"
              :listen [:action (fn [e]
-                                (fb/save-file "file"))]))
+                                (fb/save-file (text fb/file-name)))]))
 
 (def file-menu-open
   (menu-item :text "Open"
              :listen [:action (fn [e]
-                                (fb/open-file "file"))]))
+                                (fb/open-file (text fb/file-name)))]))
 
 
 ;;--------------------------------------------------
@@ -37,7 +40,8 @@
 
 (def file-menu
   (menu :text "File"
-        :items [file-menu-save
+        :items [file-menu-new
+                file-menu-save
                 file-menu-open]))
 
 ;;End creating menu items
@@ -73,14 +77,18 @@
   (invoke-later
    (show! main-frame)))
 
+(listen file-menu-new :action
+        (fn [e]
+          (text! edit-area "")
+          (config! main-frame :title (str "NNP .::. *new-buffer*"))))
+
 (listen fb/save-open-button :action
                  ;TODO More efficient reading in of file to memory
                  (fn [e]
                    (let [file (str fb/current-path (text fb/file-name))]
                      (if fb/open?
-                       (do (scroll! text-area :to :top)
-                           (text! edit-area (slurp file)))
+                       (do (text! edit-area (slurp file))
+                           (scroll! text-area :to :top))
                        (spit file (text edit-area)))
                      (config! fb/file-browser :visible? false)
-                     (println file)
                      (config! main-frame :title file))))

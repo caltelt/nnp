@@ -8,6 +8,7 @@
 
 (def default-width 600)
 (def default-height 480)
+(def open? false)
 
 (def current-path (str (.getCanonicalPath (File. "./")) "/"))
 
@@ -51,12 +52,20 @@
   "Name for current file to be saved/selected in fb"
   (text :editable? true))
 
+(def save-open-button
+  "Button to open the file"
+  (button :text "Open"))
+
+(def file-open-panel
+  "Horizontal panel holding the filename and open button"
+  (horizontal-panel :items [file-name save-open-button]))
+
 (def file-browser-panel
   "Panel to be added to the file-browser window"
   (border-panel
    :north file-path
    :center (scrollable file-list-box)
-   :south file-name
+   :south file-open-panel
    :vgap 5 :hgap 5 :border 5))
 
 (def file-browser
@@ -74,12 +83,16 @@
   "Function called when save is done"
   [file]
   (config! file-name :text file)
+  (def open? false)
+  (config! save-open-button :text "Save")
   (show! file-browser))
 
 (defn open-file
   "Function called when open is done"
   [file]
   (config! file-name :text file)
+  (def open? true)
+  (config! save-open-button :text "Open")
   (show! file-browser))
 
 (defn change-dir
@@ -113,3 +126,4 @@
              (if (re-matches #".*\/" path)
                (change-dir path)
                (change-dir (str path "/"))))))
+

@@ -8,7 +8,16 @@ Download from https://github.com/caltelt/nnp
 
 ## Usage
 
+With leiningen, you can run by cd'ing into the directory containing project.clj and doing
+
+    $ lein run
+
+    
+Or compile to a jar using
+
+    $ lein uberjar
 Run from cli with: 
+
     $ java -jar nnp.jar
 
 
